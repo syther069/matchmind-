@@ -1,4 +1,4 @@
-@"
+$content = @'
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
@@ -41,7 +41,7 @@ export function WalletConnect() {
           >
             <div className="mb-2 flex items-center justify-between">
               <span className="font-mono text-xs uppercase tracking-widest text-[#666560]">Select wallet</span>
-              <button onClick={() => setShowModal(false)} className="text-[#666560] hover:text-white">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-[#666560] hover:text-white">x</button>
             </div>
             {connectors.map((connector) => (
               <button
@@ -55,11 +55,3 @@ export function WalletConnect() {
               >
                 {connector.name}
               </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-"@ | Out-File -FilePath "C:\Users\Sythe\OneDrive\Documents\matchmind Xlayer\matchmind\frontend\components\WalletConnect.tsx" -Encoding utf8
