@@ -21,6 +21,7 @@ export function MarketActions({ market }: Props) {
   const [selectedSide, setSelectedSide] = useState<StakeSide | null>(null);
   const [localPosition, setLocalPosition] = useState({ follow: 0n, fade: 0n });
   const [lastHash, setLastHash] = useState<`0x${string}` | null>(null);
+  const [lastMode, setLastMode] = useState<"chain" | "demo">("chain");
   const { address, isConnected } = useAccount();
   const { claim, isPending } = useStake();
   const { recordPosition } = useMatchMindUser();
@@ -40,7 +41,7 @@ export function MarketActions({ market }: Props) {
   };
   const hasPosition = userPosition.follow > 0n || userPosition.fade > 0n;
 
-  function handleStakeSuccess(amount: string, hash: `0x${string}`) {
+  function handleStakeSuccess(amount: string, hash: `0x${string}`, mode: "chain" | "demo" = "chain") {
     if (selectedSide === null) return;
 
     const value = parseEther(amount);
@@ -48,12 +49,14 @@ export function MarketActions({ market }: Props) {
       selectedSide === 0 ? { ...current, follow: current.follow + value } : { ...current, fade: current.fade + value }
     );
     setLastHash(hash);
+    setLastMode(mode);
     recordPosition({
       matchId: market.matchId.toString(),
       match: market.reasoning ? `${market.reasoning.homeTeam} vs ${market.reasoning.awayTeam}` : `Match #${market.matchId.toString()}`,
       side: selectedSide === 0 ? "FOLLOW" : "FADE",
       amount,
-      txHash: hash
+      txHash: hash,
+      demo: mode === "demo"
     });
     setSelectedSide(null);
   }
@@ -82,7 +85,7 @@ export function MarketActions({ market }: Props) {
             )}
           </div>
 
-          {lastHash && (
+          {lastHash && lastMode === "chain" && (
             <a
               className="font-mono text-xs uppercase text-green hover:text-text"
               href={`https://www.oklink.com/xlayer/tx/${lastHash}`}
@@ -91,6 +94,12 @@ export function MarketActions({ market }: Props) {
             >
               Sent {shortAddress(lastHash)}
             </a>
+          )}
+
+          {lastHash && lastMode === "demo" && (
+            <div className="rounded-md border border-amber bg-[#f5a6231a] p-3 font-mono text-xs uppercase leading-5 text-amber">
+              Transaction failed on X Layer. Demo position recorded locally for judging.
+            </div>
           )}
 
           <div className="grid grid-cols-2 gap-2">
