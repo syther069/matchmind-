@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Syne:wght@500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0a0a;
+  --bg1: #111111;
+  --bg2: #181818;
+  --bg3: #202020;
+  --text: #e8e6e0;
+  --green: #a8ff6e;
+  --coral: #ff6b4a;
+  --amber: #f5a623;
+  --blue: #6eb8ff;
+  --border: rgba(255, 255, 255, 0.07);
+  --muted: #9a978e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Syne", Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: var(--green);
+  color: var(--bg);
+}
