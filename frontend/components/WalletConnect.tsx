@@ -13,7 +13,7 @@ export function WalletConnect() {
     return (
       <button
         onClick={() => disconnect()}
-        className="cursor-pointer rounded-md border border-[rgba(255,255,255,0.07)] bg-transparent px-4 py-2 font-mono text-xs text-[#a8ff6e] transition-opacity hover:opacity-75"
+        className="inline-flex h-10 cursor-pointer items-center rounded-md border border-border bg-bg1 px-4 font-mono text-xs text-green transition-opacity hover:opacity-75"
       >
         {address.slice(0, 6)}...{address.slice(-4)}
       </button>
@@ -24,7 +24,7 @@ export function WalletConnect() {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="cursor-pointer rounded-md border-none bg-[#a8ff6e] px-4 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-[#0a0a0a] transition-opacity hover:opacity-85"
+        className="inline-flex h-10 cursor-pointer items-center rounded-md border-none bg-[#a8ff6e] px-4 font-sans text-xs font-semibold uppercase tracking-widest text-[#0a0a0a] transition-opacity hover:opacity-85"
       >
         Connect Wallet
       </button>

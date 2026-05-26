@@ -23,17 +23,34 @@ export function Nav() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-bg">
-      <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 xl:grid-cols-[260px_1fr_auto] xl:items-center">
-        <Link href="/" className="flex items-center gap-3" aria-label="MatchMind dashboard">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border text-green">
-            <Bot size={20} />
-          </span>
-          <span>
-            <span className="block font-display text-xl font-bold uppercase text-text">MatchMind</span>
-            <span className="block font-mono text-xs uppercase text-muted">X Layer / chain 196</span>
-          </span>
-        </Link>
-        <nav className="flex flex-wrap items-center gap-2 xl:justify-center">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <Link href="/" className="flex min-w-0 items-center gap-3" aria-label="MatchMind dashboard">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border text-green">
+              <Bot size={22} />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate font-display text-2xl font-bold uppercase text-text">MatchMind</span>
+              <span className="block truncate font-mono text-xs uppercase text-muted">X Layer / chain 196</span>
+            </span>
+          </Link>
+
+          <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
+            <Link
+              href="/profile"
+              className="inline-flex h-10 min-w-0 max-w-[230px] items-center gap-2 rounded-md border border-border bg-bg1 px-2 pr-3 transition-colors hover:border-green"
+              title="Open profile"
+            >
+              <UserAvatar src={profile.avatar} username={profile.username} size="sm" />
+              <span className="truncate font-mono text-xs uppercase text-text">{profile.username}</span>
+            </Link>
+            <NotificationCenter />
+            <ThemeToggle />
+            <WalletConnect />
+          </div>
+        </div>
+
+        <nav className="flex flex-wrap items-center gap-2">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -49,19 +66,6 @@ export function Nav() {
             </Link>
           ))}
         </nav>
-        <div className="flex flex-wrap items-center justify-start gap-2 xl:justify-end">
-          <Link
-            href="/profile"
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-bg1 px-2 pr-3 transition-colors hover:border-green"
-            title="Open profile"
-          >
-            <UserAvatar src={profile.avatar} username={profile.username} size="sm" />
-            <span className="hidden max-w-28 truncate font-mono text-xs uppercase text-text sm:inline">{profile.username}</span>
-          </Link>
-          <NotificationCenter />
-          <ThemeToggle />
-          <WalletConnect />
-        </div>
       </div>
     </header>
   );
