@@ -39,8 +39,15 @@ export function WalletConnect() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-2 flex items-center justify-between">
-              <span className="font-mono text-xs uppercase tracking-widest text-[#666560]">Select wallet</span>
-              <button onClick={() => setShowModal(false)} className="text-[#666560] hover:text-white">x</button>
+              <span className="font-mono text-xs uppercase tracking-widest text-[#666560]">
+                Select wallet
+              </span>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-[#666560] hover:text-white"
+              >
+                x
+              </button>
             </div>
             {connectors.map((connector) => (
               <button
@@ -53,8 +60,8 @@ export function WalletConnect() {
                 className="flex items-center gap-3 rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#181818] px-4 py-3 text-left text-sm text-[#e8e6e0] transition-colors hover:border-[#a8ff6e] hover:bg-[#2a3d1a] disabled:opacity-50"
               >
                 {connector.name}
-              </button> 
-
+              </button>
+            ))}
           </div>
         </div>
       )}
