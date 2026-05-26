@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, BarChart3, Bot, ListTree, Trophy, User } from "lucide-react";
+import { NetworkBadge } from "@/components/NetworkBadge";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -44,6 +45,7 @@ export function Nav() {
               <UserAvatar src={profile.avatar} username={profile.username} size="sm" />
               <span className="truncate font-mono text-xs uppercase text-text">{profile.username}</span>
             </Link>
+            <NetworkBadge />
             <NotificationCenter />
             <ThemeToggle />
             <WalletConnect />

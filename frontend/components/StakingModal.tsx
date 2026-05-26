@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { AlertCircle, Check, X } from "lucide-react";
+import { useChainId, useSwitchChain } from "wagmi";
 import { Button } from "@/components/ui/button";
-import { useStake } from "@/hooks/useStake";
+import { isChainMismatchError, useStake, xLayerRequiredMessage } from "@/hooks/useStake";
+import { xLayer } from "@/lib/chains";
 import { cn } from "@/lib/utils";
 
 type StakeSide = 0 | 1;
@@ -29,9 +31,24 @@ export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
   const [amount, setAmount] = useState("0.001");
   const [error, setError] = useState("");
   const { stake, isPending } = useStake();
+  const chainId = useChainId();
+  const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
 
   const isFollow = side === 0;
   const sideLabel = isFollow ? "Follow" : "Fade";
+  const isBusy = isPending || isSwitching;
+
+  async function ensureXLayer() {
+    if (chainId === xLayer.id) return true;
+
+    try {
+      await switchChainAsync({ chainId: xLayer.id });
+      return true;
+    } catch {
+      setError(xLayerRequiredMessage);
+      return false;
+    }
+  }
 
   async function handleConfirm() {
     const parsed = Number(amount);
@@ -42,10 +59,18 @@ export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
 
     setError("");
 
+    const ready = await ensureXLayer();
+    if (!ready) return;
+
     try {
       const hash = await stake(matchId, side, amount);
       onSuccess(amount, hash, "chain");
-    } catch {
+    } catch (caught) {
+      if (isChainMismatchError(caught)) {
+        setError(xLayerRequiredMessage);
+        return;
+      }
+
       onSuccess(amount, createDemoHash(matchId, side, amount), "demo");
     }
   }
@@ -82,6 +107,10 @@ export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
             Minimum stake: <span className="text-text">0.001 OKB</span>
           </div>
 
+          <div className="rounded-md border border-border bg-bg p-3 font-mono text-xs uppercase text-muted">
+            Positions can only be recorded on <span className="text-green">X Layer</span>.
+          </div>
+
           {error && (
             <div className="flex gap-2 rounded-md border border-coral bg-[#ff6b4a1a] p-3 text-sm text-coral">
               <AlertCircle className="mt-0.5 shrink-0" size={16} />
@@ -90,12 +119,12 @@ export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" onClick={onClose} disabled={isPending}>
+            <Button variant="secondary" onClick={onClose} disabled={isBusy}>
               Cancel
             </Button>
-            <Button variant={isFollow ? "default" : "danger"} onClick={handleConfirm} disabled={isPending}>
+            <Button variant={isFollow ? "default" : "danger"} onClick={handleConfirm} disabled={isBusy}>
               <Check size={16} />
-              {isPending ? "Confirming" : `Confirm ${sideLabel}`}
+              {isSwitching ? "Switching" : isPending ? "Confirming" : `Confirm ${sideLabel}`}
             </Button>
           </div>
         </div>

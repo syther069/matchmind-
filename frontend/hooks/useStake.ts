@@ -5,6 +5,13 @@ import { useWriteContract } from "wagmi";
 import { xLayer } from "@/lib/chains";
 import { poolAbi, poolAddress } from "@/lib/contracts";
 
+export const xLayerRequiredMessage = "Please switch to X Layer Network to place a position.";
+
+export function isChainMismatchError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /chain mismatch|current chain|target chain|switch chain|unsupported chain|chain id/i.test(message);
+}
+
 export function useStake() {
   const write = useWriteContract();
 

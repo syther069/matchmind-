@@ -1,13 +1,26 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function WalletConnect() {
   const { address, isConnected } = useAccount();
   const { connectors, connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    function openWalletModal() {
+      setShowModal(true);
+    }
+
+    window.addEventListener("matchmind:open-wallet", openWalletModal);
+    return () => window.removeEventListener("matchmind:open-wallet", openWalletModal);
+  }, []);
+
+  useEffect(() => {
+    if (isConnected) setShowModal(false);
+  }, [isConnected]);
 
   if (isConnected && address) {
     return (
