@@ -4,7 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+.dark {
   --bg: #0a0a0a;
   --bg1: #111111;
   --bg2: #181818;
@@ -16,6 +17,20 @@
   --blue: #6eb8ff;
   --border: rgba(255, 255, 255, 0.07);
   --muted: #9a978e;
+}
+
+.light {
+  --bg: #f6f4ee;
+  --bg1: #ffffff;
+  --bg2: #eeebe2;
+  --bg3: #ded9cc;
+  --text: #181713;
+  --green: #2e7d32;
+  --coral: #b53d22;
+  --amber: #9a6400;
+  --blue: #1769aa;
+  --border: rgba(24, 23, 19, 0.12);
+  --muted: #68645b;
 }
 
 * {
@@ -34,6 +49,7 @@ body {
   color: var(--text);
   font-family: "Syne", Arial, sans-serif;
   letter-spacing: 0;
+  transition: background 180ms ease, color 180ms ease;
 }
 
 button,

@@ -8,6 +8,7 @@ import { StakingModal } from "@/components/StakingModal";
 import { Button } from "@/components/ui/button";
 import { useStake } from "@/hooks/useStake";
 import type { IndexedMarket } from "@/lib/indexer";
+import { useMatchMindUser } from "@/lib/userProfile";
 import { formatOKB, shortAddress } from "@/lib/utils";
 
 type Props = {
@@ -22,6 +23,7 @@ export function MarketActions({ market }: Props) {
   const [lastHash, setLastHash] = useState<`0x${string}` | null>(null);
   const { address, isConnected } = useAccount();
   const { claim, isPending } = useStake();
+  const { recordPosition } = useMatchMindUser();
 
   const accountPosition = useMemo(() => {
     if (!address) return { follow: 0n, fade: 0n };
@@ -39,11 +41,20 @@ export function MarketActions({ market }: Props) {
   const hasPosition = userPosition.follow > 0n || userPosition.fade > 0n;
 
   function handleStakeSuccess(amount: string, hash: `0x${string}`) {
+    if (selectedSide === null) return;
+
     const value = parseEther(amount);
     setLocalPosition((current) =>
       selectedSide === 0 ? { ...current, follow: current.follow + value } : { ...current, fade: current.fade + value }
     );
     setLastHash(hash);
+    recordPosition({
+      matchId: market.matchId.toString(),
+      match: market.reasoning ? `${market.reasoning.homeTeam} vs ${market.reasoning.awayTeam}` : `Match #${market.matchId.toString()}`,
+      side: selectedSide === 0 ? "FOLLOW" : "FADE",
+      amount,
+      txHash: hash
+    });
     setSelectedSide(null);
   }
 

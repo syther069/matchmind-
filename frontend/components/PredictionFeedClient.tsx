@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { PredictionCard } from "@/components/PredictionCard";
+import { RecentActivity } from "@/components/RecentActivity";
 import { Button } from "@/components/ui/button";
 import { useMarketData } from "@/hooks/useMarketData";
 
@@ -44,6 +45,8 @@ export function PredictionFeedClient() {
           markets.map((market) => <PredictionCard key={market.matchId.toString()} market={market} />)
         )}
       </section>
+
+      <RecentActivity limit={5} />
     </main>
   );
 }

@@ -3,6 +3,7 @@
 import { deriveAnalytics } from "@/lib/indexer";
 import { useMarketData } from "@/hooks/useMarketData";
 import { PredictionCard } from "@/components/PredictionCard";
+import { RecentActivity } from "@/components/RecentActivity";
 import { StatGrid } from "@/components/StatGrid";
 
 const ON_CHAIN_PROOFS = [
@@ -73,6 +74,8 @@ export function DashboardClient() {
           ))
         )}
       </section>
+
+      <RecentActivity limit={5} />
     </main>
   );
 }
