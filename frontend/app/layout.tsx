@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppProviders } from "@/components/AppProviders";
+import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AppProviders>
           <Nav />
           {children}
+          <Footer />
         </AppProviders>
       </body>
     </html>
