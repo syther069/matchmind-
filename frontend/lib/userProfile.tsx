@@ -11,7 +11,6 @@ export type RecordedPosition = {
   side: PositionSide;
   amount: string;
   txHash: `0x${string}`;
-  demo?: boolean;
   createdAt: string;
 };
 
@@ -219,14 +218,12 @@ export function MatchMindUserProvider({ children }: { children: React.ReactNode 
     }));
 
     pushNotification({
-      title: position.demo ? "Demo Position Recorded" : "Position Recorded",
-      body: position.demo
-        ? `Transaction failed on X Layer.\n${position.side} - ${position.match}\n${position.amount} OKB`
-        : `${position.side} - ${position.match}\n${position.amount} OKB\nTx: ${position.txHash.slice(0, 6)}...${position.txHash.slice(-4)}`,
+      title: "Position Recorded",
+      body: `${position.side} - ${position.match}\n${position.amount} OKB\nTx: ${position.txHash.slice(0, 6)}...${position.txHash.slice(-4)}`,
       kind: "position",
       activity: {
-        label: position.demo ? "Demo Position Recorded" : "Position Recorded",
-        detail: `${position.demo ? "Demo: " : ""}${profile.username} ${position.side === "FOLLOW" ? "followed" : "faded"} ${position.match} - ${position.amount} OKB`,
+        label: "Position Recorded",
+        detail: `${profile.username} ${position.side === "FOLLOW" ? "followed" : "faded"} ${position.match} - ${position.amount} OKB`,
         kind: "position"
       }
     });

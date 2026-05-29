@@ -115,8 +115,6 @@ async function getLogsInChunks(address: `0x${string}`, events: readonly AbiEvent
 }
 
 async function fetchReasoning(cid: string): Promise<ReasoningArtifact | undefined> {
-  if (cid.startsWith("demo:")) return decodeDemoReasoning(cid);
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), ipfsTimeoutMs);
 
@@ -134,36 +132,6 @@ async function fetchReasoning(cid: string): Promise<ReasoningArtifact | undefine
   }
 }
 
-function decodeDemoReasoning(cid: string): ReasoningArtifact | undefined {
-  const [, matchId, outcome, confidence, home, away] = cid.split(":");
-  if (!matchId || !outcome || !confidence || !home || !away) return undefined;
-
-  const homeTeam = decodeURIComponent(home);
-  const awayTeam = decodeURIComponent(away);
-
-  return {
-    matchId: Number(matchId),
-    kickoff: "",
-    homeTeam,
-    awayTeam,
-    league: "MatchMind Demo League",
-    outcome: Number(outcome),
-    confidence: Number(confidence),
-    edge: 7,
-    key_factors: [
-      `${homeTeam} has stronger synthetic recent form.`,
-      "Demo odds show a small pricing edge.",
-      "The local agent is conservative because no live data is used."
-    ],
-    risks: [
-      "Demo mode does not use live lineups, injuries, odds movement, or paid AI.",
-      "Use production API keys before treating predictions as real."
-    ],
-    reasoning_summary: `Free demo prediction for ${homeTeam} vs ${awayTeam}. This local heuristic was generated without paid APIs so the full on-chain workflow can be tested.`,
-    generatedAt: "",
-    model: "matchmind-free-demo"
-  };
-}
 
 export async function getIndexedMarkets(): Promise<IndexedMarket[]> {
   if (!registryAddress || !poolAddress) return [];
