@@ -24,6 +24,13 @@ export const registryAbi = [
     ]
   },
   {
+    type: "function",
+    name: "hasPrediction",
+    stateMutability: "view",
+    inputs: [{ name: "matchId", type: "uint256" }],
+    outputs: [{ name: "", type: "bool" }]
+  },
+  {
     type: "event",
     name: "PredictionSubmitted",
     inputs: [
@@ -55,6 +62,41 @@ export const poolAbi = [
       { name: "side", type: "uint8" }
     ],
     outputs: []
+  },
+  {
+    type: "function",
+    name: "pools",
+    stateMutability: "view",
+    inputs: [{ name: "matchId", type: "uint256" }],
+    outputs: [
+      { name: "followTotal", type: "uint128" },
+      { name: "fadeTotal", type: "uint128" },
+      { name: "kickoff", type: "uint64" },
+      { name: "resolved", type: "bool" },
+      { name: "agentCorrect", type: "bool" },
+      { name: "protocolFees", type: "uint128" }
+    ]
+  },
+  {
+    type: "function",
+    name: "stakes",
+    stateMutability: "view",
+    inputs: [
+      { name: "matchId", type: "uint256" },
+      { name: "user", type: "address" }
+    ],
+    outputs: [
+      { name: "followAmount", type: "uint128" },
+      { name: "fadeAmount", type: "uint128" },
+      { name: "claimed", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "minStake",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }]
   },
   {
     type: "function",

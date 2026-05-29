@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { formatUnits } from "viem";
 import { AlertCircle, Check, X } from "lucide-react";
 import { useChainId, useSwitchChain } from "wagmi";
 import { Button } from "@/components/ui/button";
-import { isChainMismatchError, useStake, xLayerRequiredMessage } from "@/hooks/useStake";
+import {
+  isChainMismatchError,
+  MIN_STAKE_OKB,
+  OKB_DECIMALS,
+  parseOKB,
+  useStake,
+  xLayerRequiredMessage
+} from "@/hooks/useStake";
 import { xLayer } from "@/lib/chains";
 import { cn } from "@/lib/utils";
 
@@ -14,29 +22,50 @@ type Props = {
   matchId: bigint;
   side: StakeSide;
   onClose: () => void;
-  onSuccess: (amount: string, hash: `0x${string}`, mode?: "chain" | "demo") => void;
+  onSuccess: (amount: string, hash: `0x${string}`, mode?: "chain") => void;
 };
 
-const minimumStake = 0.001;
-
-function createDemoHash(matchId: bigint, side: StakeSide, amount: string): `0x${string}` {
-  const input = `${matchId.toString()}-${side}-${amount}-${Date.now()}`;
-  const encoded = Array.from(input)
-    .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
-    .join("");
-  return `0x${encoded.padEnd(64, "0").slice(0, 64)}`;
-}
-
 export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
-  const [amount, setAmount] = useState("0.001");
+  const [amount, setAmount] = useState(MIN_STAKE_OKB);
   const [error, setError] = useState("");
-  const { stake, isPending } = useStake();
+  const [submitted, setSubmitted] = useState<{ amount: string; hash: `0x${string}` } | null>(null);
+  const {
+    okbBalance,
+    minStake,
+    stake,
+    isPending,
+    stakeReceipt,
+    refetchPoolState,
+    refetchBalance
+  } = useStake();
   const chainId = useChainId();
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
 
   const isFollow = side === 0;
   const sideLabel = isFollow ? "Follow" : "Fade";
-  const isBusy = isPending || isSwitching;
+  const isStaking = isPending || stakeReceipt.isLoading;
+  const isBusy = isSwitching || isStaking;
+
+  const stakeAmount = useMemo(() => {
+    try {
+      return parseOKB(amount);
+    } catch {
+      return 0n;
+    }
+  }, [amount]);
+  const balanceLabel = Number(formatUnits(okbBalance, OKB_DECIMALS)).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4
+  });
+  const minStakeLabel = formatUnits(minStake, OKB_DECIMALS);
+
+  useEffect(() => {
+    if (stakeReceipt.isSuccess && submitted) {
+      refetchPoolState();
+      refetchBalance();
+      onSuccess(submitted.amount, submitted.hash, "chain");
+    }
+  }, [onSuccess, refetchBalance, refetchPoolState, stakeReceipt.isSuccess, submitted]);
 
   async function ensureXLayer() {
     if (chainId === xLayer.id) return true;
@@ -50,28 +79,32 @@ export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
     }
   }
 
-  async function handleConfirm() {
-    const parsed = Number(amount);
-    if (!Number.isFinite(parsed) || parsed < minimumStake) {
-      setError("Minimum stake is 0.001 OKB.");
-      return;
+  function validateAmount() {
+    if (stakeAmount < minStake) {
+      setError(`Minimum stake is ${minStakeLabel} OKB.`);
+      return false;
     }
 
+    if (stakeAmount > okbBalance) {
+      setError("Insufficient OKB balance.");
+      return false;
+    }
+
+    return true;
+  }
+
+  async function handleConfirm() {
     setError("");
+    if (!validateAmount()) return;
 
     const ready = await ensureXLayer();
     if (!ready) return;
 
     try {
       const hash = await stake(matchId, side, amount);
-      onSuccess(amount, hash, "chain");
+      setSubmitted({ amount, hash });
     } catch (caught) {
-      if (isChainMismatchError(caught)) {
-        setError(xLayerRequiredMessage);
-        return;
-      }
-
-      onSuccess(amount, createDemoHash(matchId, side, amount), "demo");
+      setError(isChainMismatchError(caught) ? xLayerRequiredMessage : "Stake transaction failed. Please try again.");
     }
   }
 
@@ -96,15 +129,28 @@ export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
             <input
               className="mt-2 h-12 w-full rounded-md border border-border bg-bg px-3 font-mono text-lg text-text outline-none transition-colors focus:border-green"
               inputMode="decimal"
-              min={minimumStake}
-              step="0.001"
+              min={minStakeLabel}
+              step="0.01"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
             />
           </label>
 
-          <div className="rounded-md border border-border bg-bg p-3 font-mono text-xs uppercase text-muted">
-            Minimum stake: <span className="text-text">0.001 OKB</span>
+          <div className="grid gap-2 rounded-md border border-border bg-bg p-3 font-mono text-xs uppercase text-muted">
+            <span>
+              Balance: <span className="text-text">{balanceLabel} OKB</span>
+            </span>
+            <span>
+              Minimum stake: <span className="text-text">{minStakeLabel} OKB</span>
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-bg p-3 font-mono text-xs uppercase text-muted">
+            <span>Send OKB transaction</span>
+            <Button variant={isFollow ? "default" : "danger"} onClick={handleConfirm} disabled={isBusy}>
+              <Check size={16} />
+              {isSwitching ? "Switching" : stakeReceipt.isLoading ? "Confirming" : sideLabel}
+            </Button>
           </div>
 
           <div className="rounded-md border border-border bg-bg p-3 font-mono text-xs uppercase text-muted">
@@ -118,15 +164,9 @@ export function StakingModal({ matchId, side, onClose, onSuccess }: Props) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" onClick={onClose} disabled={isBusy}>
-              Cancel
-            </Button>
-            <Button variant={isFollow ? "default" : "danger"} onClick={handleConfirm} disabled={isBusy}>
-              <Check size={16} />
-              {isSwitching ? "Switching" : isPending ? "Confirming" : `Confirm ${sideLabel}`}
-            </Button>
-          </div>
+          <Button variant="secondary" onClick={onClose} disabled={isBusy} className="w-full">
+            Cancel
+          </Button>
         </div>
       </div>
     </div>

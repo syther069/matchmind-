@@ -124,7 +124,7 @@ export default function WhitepaperModal({ open, onClose }: WhitepaperModalProps)
                 <section className="space-y-3">
                   <h3 className={headingClassName}>ABSTRACT</h3>
                   <p id={abstractId} className={paragraphClassName}>
-                    MatchMind is an AI prediction agent that commits football predictions to X Layer before kickoff, creating a permanent and verifiable on-chain track record. Users can stake OKB to follow or fade the agent's predictions in a transparent prediction market.
+                    MatchMind is an AI prediction agent that commits football predictions to X Layer before kickoff, creating a permanent and verifiable on-chain track record. Users can stake native OKB to follow or fade the agent's predictions in a transparent prediction market.
                   </p>
                 </section>
 
@@ -171,7 +171,7 @@ export default function WhitepaperModal({ open, onClose }: WhitepaperModalProps)
                     </article>
                     <article className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
                       <h4 className="font-display text-base font-semibold uppercase text-text">3. Market Opens</h4>
-                      <p className="mt-2 text-sm leading-6 text-muted">Users stake OKB on:</p>
+                      <p className="mt-2 text-sm leading-6 text-muted">Users stake native OKB on:</p>
                       <ul className="mt-3 space-y-1.5 text-sm leading-6 text-[#d8d4ca]">
                         <li>- Follow → AI is correct</li>
                         <li>- Fade → AI is wrong</li>
@@ -249,3 +249,4 @@ export default function WhitepaperModal({ open, onClose }: WhitepaperModalProps)
     </AnimatePresence>
   );
 }
+

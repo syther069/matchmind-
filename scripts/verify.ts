@@ -31,10 +31,12 @@ async function main() {
 
   await verify(deployment.registry, [deployment.owner, deployment.agent]);
   await verify(deployment.pool, [
-    deployment.owner,
     deployment.registry,
-    deployment.minStake,
-    deployment.feeRecipient
+    deployment.owner,
+    deployment.agent,
+    deployment.backend,
+    deployment.feeRecipient,
+    deployment.minStake
   ]);
   await verify(deployment.resolver, [
     deployment.owner,

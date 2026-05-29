@@ -4,16 +4,19 @@ import { ethers } from "hardhat";
 describe("OracleResolver", function () {
   async function deployFixture() {
     const [owner, agent, backend, feeRecipient, stranger] = await ethers.getSigners();
+
     const Registry = await ethers.getContractFactory("PredictionRegistry");
     const registry = await Registry.deploy(owner.address, agent.address);
     await registry.waitForDeployment();
 
     const Pool = await ethers.getContractFactory("StakingPool");
     const pool = await Pool.deploy(
-      owner.address,
       await registry.getAddress(),
-      ethers.parseEther("0.01"),
-      feeRecipient.address
+      owner.address,
+      agent.address,
+      backend.address,
+      feeRecipient.address,
+      ethers.parseEther("0.001")
     );
     await pool.waitForDeployment();
 

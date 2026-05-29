@@ -5,6 +5,7 @@
   "description": "AI-powered football prediction market on X Layer.",
   "scripts": {
     "compile": "hardhat compile",
+    "build": "npm --prefix frontend run build",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
     "deploy:xlayer": "hardhat run scripts/deploy.ts --network xlayer",

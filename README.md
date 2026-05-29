@@ -18,7 +18,7 @@
 
 ## What is MatchMind?
 
-MatchMind is a fully on-chain AI prediction agent built for the 2026 World Cup. An autonomous AI agent analyzes real-world football data — team form, historical head-to-head records, live odds, squad strength, and more — and publishes verifiable match predictions directly to smart contracts on the X Layer (OKB) blockchain.
+MatchMind is a fully on-chain AI prediction agent built for the 2026 World Cup. An autonomous AI agent analyzes real-world football data — team form, historical head-to-head records, live odds, squad strength, and more — and publishes verifiable match predictions directly to smart contracts on X Layer.
 
 Every prediction is immutably recorded before kickoff. Every outcome is resolved on-chain. There is no hidden model, no post-hoc editing, no cherry-picking of results. Anyone can follow the agent's calls or fade them. The blockchain doesn't lie.
 
@@ -79,7 +79,7 @@ Every prediction is immutably recorded before kickoff. Every outcome is resolved
   │   │                      │  │                   │  │    data     │ │
   │   └──────────────────────┘  └──────────────────┘  └─────────────┘ │
   │                                                                      │
-  │   Deployed on X Layer (OKB)  │  OpenZeppelin v5 contracts           │
+  │   Deployed on X Layer        │  OpenZeppelin v5 contracts           │
   └──────────────────────────────────────────────────────────────────────┘
                                  │
   ┌──────────────────────────────▼────────────────────────────────────┐
@@ -89,7 +89,7 @@ Every prediction is immutably recorded before kickoff. Every outcome is resolved
   │   │   Next.js dApp (via NEXT_PUBLIC_* env vars)               │   │
   │   │   • View live & historical predictions                    │   │
   │   │   • Connect wallet (WalletConnect)                        │   │
-  │   │   • Follow or fade predictions with OKB stake             │   │
+  │   │   • Follow or fade predictions with native OKB stake      │   │
   │   │   • Browse IPFS reasoning per prediction                  │   │
   │   └───────────────────────────────────────────────────────────┘   │
   └──────────────────────────────────────────────────────────────────────┘
@@ -97,11 +97,11 @@ Every prediction is immutably recorded before kickoff. Every outcome is resolved
 
 ### Contract Addresses (X Layer Mainnet)
 
-| Contract | Address |
+Latest deployment addresses are written to `deployments/xlayer.json` by `scripts/deploy.ts`.
+
+| Asset | Network |
 |---|---|
-| PredictionRegistry | `0xcE7186F84cd7F48124dDADB5d318e7Df06667010` |
-| StakingPool | `0x235491Ff2789Ae6988f361FEF275E829fCbc5A8D` |
-| OracleResolver | `0x8b675449ECa160A891529181Fa7AA4185FB907C5` |
+| Native OKB | X Layer Mainnet |
 
 ---
 
@@ -111,7 +111,7 @@ Every prediction is immutably recorded before kickoff. Every outcome is resolved
 
 **AI-powered analysis** — the Claude model synthesizes match data from multiple sports APIs, computes a confidence score, and writes a detailed reasoning artifact to IPFS. Low-confidence matches are skipped automatically.
 
-**Follow or fade mechanics** — users stake OKB via the `StakingPool` contract either backing or opposing the agent's call. The `OracleResolver` settles outcomes post-match and distributes rewards accordingly.
+**Follow or fade mechanics** — users stake native OKB via the `StakingPool` contract either backing or opposing the agent's call. The `OracleResolver` settles outcomes post-match and distributes rewards accordingly.
 
 **Transparent reasoning** — every prediction links to a human-readable IPFS document explaining *why* the agent made the call. No black boxes.
 
@@ -180,7 +180,7 @@ cp .env.example .env
 | `AGENT_ADDRESS` | Address the AI agent signs transactions from |
 | `BACKEND_ADDRESS` | Backend service wallet for oracle resolution |
 | `FEE_RECIPIENT` | Address that receives protocol fees |
-| `MIN_STAKE_OKB` | Minimum stake amount in OKB (default `0.01`) |
+| `MIN_STAKE_OKB` | Minimum stake amount in native OKB (default `0.001`) |
 | `PREDICTION_REGISTRY_ADDRESS` | Deployed `PredictionRegistry` contract address |
 | `STAKING_POOL_ADDRESS` | Deployed `StakingPool` contract address |
 | `ORACLE_RESOLVER_ADDRESS` | Deployed `OracleResolver` contract address |
@@ -252,7 +252,7 @@ The agent will fetch upcoming World Cup fixtures, run predictions through Claude
 
 **5. On-chain registration** — The agent wallet calls `PredictionRegistry.registerPrediction(matchId, outcome, confidence, ipfsCid)`. The contract locks the record and emits an event.
 
-**6. Staking** — Before kickoff, users interact with the `StakingPool` to stake OKB either following or fading the agent's call.
+**6. Staking** — Before kickoff, users send native OKB to the `StakingPool` to stake either following or fading the agent's call.
 
 **7. Resolution** — After the match, the `OracleResolver` fetches the result, calls `resolve()`, and the `StakingPool` distributes winnings. The agent's on-chain track record is permanently updated.
 

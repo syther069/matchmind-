@@ -70,13 +70,6 @@ const defaultProfile: UserProfile = {
 
 const defaultActivity: ActivityItem[] = [
   {
-    id: "seed-position",
-    label: "Position Recorded",
-    detail: "User followed Brazil vs Argentina - 0.05 OKB",
-    createdAt: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
-    kind: "position"
-  },
-  {
     id: "seed-mint",
     label: "Prediction Pass Minted",
     detail: "User minted Prediction Pass",
@@ -94,18 +87,10 @@ const defaultActivity: ActivityItem[] = [
 
 const defaultNotifications: NotificationItem[] = [
   {
-    id: "seed-notice-position",
-    title: "Position Recorded",
-    body: "FOLLOW - Brazil vs Argentina\n0.05 OKB\nTx: 0xcde6...b563",
-    createdAt: defaultActivity[0].createdAt,
-    read: false,
-    kind: "position"
-  },
-  {
     id: "seed-notice-mint",
     title: "Prediction Pass Minted",
     body: "Prediction Pass ownership recorded locally.",
-    createdAt: defaultActivity[1].createdAt,
+    createdAt: defaultActivity[0].createdAt,
     read: false,
     kind: "mint"
   },
@@ -113,7 +98,7 @@ const defaultNotifications: NotificationItem[] = [
     id: "seed-notice-profile",
     title: "Profile Updated",
     body: "MatchMind Trader updated profile.",
-    createdAt: defaultActivity[2].createdAt,
+    createdAt: defaultActivity[1].createdAt,
     read: false,
     kind: "profile"
   }
@@ -236,7 +221,7 @@ export function MatchMindUserProvider({ children }: { children: React.ReactNode 
     pushNotification({
       title: position.demo ? "Demo Position Recorded" : "Position Recorded",
       body: position.demo
-        ? `Transaction failed on X Layer. Demo position recorded locally for judging.\n${position.side} - ${position.match}\n${position.amount} OKB\nDemo ref: ${position.txHash.slice(0, 6)}...${position.txHash.slice(-4)}`
+        ? `Transaction failed on X Layer.\n${position.side} - ${position.match}\n${position.amount} OKB`
         : `${position.side} - ${position.match}\n${position.amount} OKB\nTx: ${position.txHash.slice(0, 6)}...${position.txHash.slice(-4)}`,
       kind: "position",
       activity: {

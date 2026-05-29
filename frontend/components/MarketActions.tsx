@@ -1,15 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, RotateCcw, X } from "lucide-react";
-import { getAddress, parseEther } from "viem";
+import { getAddress } from "viem";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { StakingModal } from "@/components/StakingModal";
 import { Button } from "@/components/ui/button";
-import { isChainMismatchError, useStake, xLayerRequiredMessage } from "@/hooks/useStake";
+import { isChainMismatchError, useStake, useUserPosition, xLayerRequiredMessage } from "@/hooks/useStake";
 import { xLayer } from "@/lib/chains";
 import type { IndexedMarket } from "@/lib/indexer";
-import { useMatchMindUser } from "@/lib/userProfile";
 import { formatOKB, shortAddress } from "@/lib/utils";
 
 type Props = {
@@ -20,15 +20,14 @@ type StakeSide = 0 | 1;
 
 export function MarketActions({ market }: Props) {
   const [selectedSide, setSelectedSide] = useState<StakeSide | null>(null);
-  const [localPosition, setLocalPosition] = useState({ follow: 0n, fade: 0n });
   const [lastHash, setLastHash] = useState<`0x${string}` | null>(null);
-  const [lastMode, setLastMode] = useState<"chain" | "demo">("chain");
   const [notice, setNotice] = useState("");
+  const queryClient = useQueryClient();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
   const { claim, isPending } = useStake();
-  const { recordPosition } = useMatchMindUser();
+  const chainPosition = useUserPosition(market.matchId);
 
   const accountPosition = useMemo(() => {
     if (!address) return { follow: 0n, fade: 0n };
@@ -39,10 +38,7 @@ export function MarketActions({ market }: Props) {
     }
   }, [address, market.positions]);
 
-  const userPosition = {
-    follow: accountPosition.follow + localPosition.follow,
-    fade: accountPosition.fade + localPosition.fade
-  };
+  const userPosition = address ? { follow: chainPosition.follow, fade: chainPosition.fade } : accountPosition;
   const hasPosition = userPosition.follow > 0n || userPosition.fade > 0n;
 
   function openWalletModal() {
@@ -95,24 +91,13 @@ export function MarketActions({ market }: Props) {
     }
   }
 
-  function handleStakeSuccess(amount: string, hash: `0x${string}`, mode: "chain" | "demo" = "chain") {
+  function handleStakeSuccess(_amount: string, hash: `0x${string}`) {
     if (selectedSide === null) return;
 
-    const value = parseEther(amount);
-    setLocalPosition((current) =>
-      selectedSide === 0 ? { ...current, follow: current.follow + value } : { ...current, fade: current.fade + value }
-    );
     setLastHash(hash);
-    setLastMode(mode);
-    setNotice(mode === "demo" ? "Transaction failed on X Layer. Demo position recorded locally for judging." : "");
-    recordPosition({
-      matchId: market.matchId.toString(),
-      match: market.reasoning ? `${market.reasoning.homeTeam} vs ${market.reasoning.awayTeam}` : `Match #${market.matchId.toString()}`,
-      side: selectedSide === 0 ? "FOLLOW" : "FADE",
-      amount,
-      txHash: hash,
-      demo: mode === "demo"
-    });
+    setNotice("");
+    chainPosition.refetchPosition();
+    queryClient.invalidateQueries({ queryKey: ["matchmind-markets"] });
     setSelectedSide(null);
   }
 
@@ -146,7 +131,7 @@ export function MarketActions({ market }: Props) {
             </div>
           )}
 
-          {lastHash && lastMode === "chain" && (
+          {lastHash && (
             <a
               className="font-mono text-xs uppercase text-green hover:text-text"
               href={`https://www.oklink.com/xlayer/tx/${lastHash}`}
@@ -155,12 +140,6 @@ export function MarketActions({ market }: Props) {
             >
               Sent {shortAddress(lastHash)}
             </a>
-          )}
-
-          {lastHash && lastMode === "demo" && (
-            <div className="rounded-md border border-amber bg-[#f5a6231a] p-3 font-mono text-xs uppercase leading-5 text-amber">
-              Transaction failed on X Layer. Demo position recorded locally for judging.
-            </div>
           )}
 
           <div className="grid grid-cols-2 gap-2">

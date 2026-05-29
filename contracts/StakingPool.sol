@@ -39,12 +39,13 @@ contract StakingPool is Ownable2Step, ReentrancyGuard {
     error StakeTooSmall();
     error NothingToClaim();
     error AlreadyClaimed();
-    error TransferFailed();
     error Unauthorized();
     error ValueTooLarge();
+    error TransferFailed();
 
     uint16 public constant PROTOCOL_FEE_BPS = 200;
     uint16 public constant BPS_DENOMINATOR = 10_000;
+    uint256 public constant MIN_STAKE = 0.001 ether;
 
     IPredictionRegistry public immutable registry;
     uint256 public minStake;
@@ -76,17 +77,22 @@ contract StakingPool is Ownable2Step, ReentrancyGuard {
     }
 
     constructor(
-        address initialOwner,
         address predictionRegistry,
-        uint256 initialMinStake,
-        address initialFeeRecipient
+        address initialOwner,
+        address,
+        address,
+        address initialFeeRecipient,
+        uint256 initialMinStake
     ) Ownable(initialOwner) {
-        if (predictionRegistry == address(0) || initialFeeRecipient == address(0)) revert ZeroAddress();
+        if (
+            predictionRegistry == address(0) ||
+            initialFeeRecipient == address(0)
+        ) revert ZeroAddress();
         registry = IPredictionRegistry(predictionRegistry);
-        minStake = initialMinStake;
+        minStake = initialMinStake == 0 ? MIN_STAKE : initialMinStake;
         feeRecipient = initialFeeRecipient;
         emit FeeRecipientUpdated(address(0), initialFeeRecipient);
-        emit MinStakeUpdated(0, initialMinStake);
+        emit MinStakeUpdated(0, minStake);
     }
 
     function setResolver(address newResolver) external onlyOwner {
@@ -104,6 +110,7 @@ contract StakingPool is Ownable2Step, ReentrancyGuard {
     }
 
     function setMinStake(uint256 newMinStake) external onlyOwner {
+        if (newMinStake < MIN_STAKE) revert StakeTooSmall();
         uint256 oldMinStake = minStake;
         minStake = newMinStake;
         emit MinStakeUpdated(oldMinStake, newMinStake);
@@ -126,20 +133,21 @@ contract StakingPool is Ownable2Step, ReentrancyGuard {
         if (pool.kickoff == 0) revert MarketMissing();
         if (block.timestamp >= pool.kickoff) revert MarketClosed();
         if (pool.resolved) revert PoolResolvedAlready();
-        if (msg.value < minStake) revert StakeTooSmall();
+        uint256 amount = msg.value;
+        if (amount < minStake) revert StakeTooSmall();
 
-        uint128 amount = _toUint128(msg.value);
+        uint128 stakeAmount = _toUint128(amount);
         StakeInfo storage userStake = stakes[matchId][msg.sender];
 
         if (side == Side.Follow) {
-            pool.followTotal += amount;
-            userStake.followAmount += amount;
+            pool.followTotal += stakeAmount;
+            userStake.followAmount += stakeAmount;
         } else {
-            pool.fadeTotal += amount;
-            userStake.fadeAmount += amount;
+            pool.fadeTotal += stakeAmount;
+            userStake.fadeAmount += stakeAmount;
         }
 
-        emit StakePlaced(matchId, msg.sender, side, msg.value);
+        emit StakePlaced(matchId, msg.sender, side, amount);
     }
 
     function resolvePool(uint256 matchId, bool agentCorrect) external onlyResolver {
@@ -176,8 +184,7 @@ contract StakingPool is Ownable2Step, ReentrancyGuard {
         uint256 distributableLosers = loserTotal - pool.protocolFees;
         reward = userWinnerStake + ((userWinnerStake * distributableLosers) / winnerTotal);
 
-        (bool ok, ) = msg.sender.call{value: reward}("");
-        if (!ok) revert TransferFailed();
+        _sendValue(msg.sender, reward);
 
         emit RewardClaimed(matchId, msg.sender, reward);
     }
@@ -187,8 +194,7 @@ contract StakingPool is Ownable2Step, ReentrancyGuard {
         if (amount == 0) revert NothingToClaim();
         accruedProtocolFees = 0;
 
-        (bool ok, ) = feeRecipient.call{value: amount}("");
-        if (!ok) revert TransferFailed();
+        _sendValue(feeRecipient, amount);
 
         emit FeesWithdrawn(feeRecipient, amount);
     }
@@ -212,5 +218,10 @@ contract StakingPool is Ownable2Step, ReentrancyGuard {
     function _toUint128(uint256 value) internal pure returns (uint128) {
         if (value > type(uint128).max) revert ValueTooLarge();
         return uint128(value);
+    }
+
+    function _sendValue(address recipient, uint256 amount) internal {
+        (bool success, ) = payable(recipient).call{value: amount}("");
+        if (!success) revert TransferFailed();
     }
 }

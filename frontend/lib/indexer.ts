@@ -1,7 +1,7 @@
 import { createPublicClient, getAddress, http, parseAbiItem } from "viem";
 import type { AbiEvent } from "viem";
 import { xLayer } from "./chains";
-import { poolAddress, registryAddress } from "./contracts";
+import { poolAbi, poolAddress, registryAddress } from "./contracts";
 
 export type IndexedMarket = {
   matchId: bigint;
@@ -167,6 +167,7 @@ function decodeDemoReasoning(cid: string): ReasoningArtifact | undefined {
 
 export async function getIndexedMarkets(): Promise<IndexedMarket[]> {
   if (!registryAddress || !poolAddress) return [];
+  const activePoolAddress = poolAddress;
 
   const latestBlock = configuredToBlock || (await publicClient.getBlockNumber());
   const registryLogs = await getLogsInChunks(
@@ -247,6 +248,26 @@ export async function getIndexedMarkets(): Promise<IndexedMarket[]> {
       amount: log.args.amount!
     });
   }
+
+  await Promise.all(
+    [...markets.values()].map(async (market) => {
+      try {
+        const pool = await publicClient.readContract({
+          address: activePoolAddress,
+          abi: poolAbi,
+          functionName: "pools",
+          args: [market.matchId]
+        });
+        market.followTotal = pool[0];
+        market.fadeTotal = pool[1];
+        if (pool[2] > 0n) market.kickoff = Number(pool[2]);
+        market.resolved = pool[3];
+        market.correct = pool[4];
+      } catch {
+        // Event-derived data remains usable if a pool read times out.
+      }
+    })
+  );
 
   const hydrated = hydrateIpfs
     ? await Promise.all(
